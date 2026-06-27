@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 150 46% 28%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 42 32% 92%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 197 37% 42%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 150 46% 28%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 220 18% 8%;
+    --foreground: 210 40% 98%;
+    --card: 220 18% 10%;
+    --card-foreground: 210 40% 98%;
+    --popover: 220 18% 10%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 149 42% 45%;
+    --primary-foreground: 220 18% 8%;
+    --secondary: 218 14% 16%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 218 14% 16%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 197 42% 50%;
+    --accent-foreground: 220 18% 8%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 218 14% 18%;
+    --input: 218 14% 18%;
+    --ring: 149 42% 45%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background pb-20 text-foreground antialiased md:pb-0;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+}
+
+@layer utilities {
+  .animate-rise {
+    animation: rise 700ms ease-out both;
+  }
+
+  .animate-rise-delayed {
+    animation: rise 850ms ease-out 120ms both;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

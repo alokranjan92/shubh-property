@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: shubh-properties-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: shubh_properties
+    ports:
+      - "5432:5432"
+    volumes:
+      - shubh_properties_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  shubh_properties_postgres_data:

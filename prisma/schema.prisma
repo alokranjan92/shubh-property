@@ -1,0 +1,620 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  AGENT
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum AgentStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum PropertyPurpose {
+  SALE
+  RENT
+  LEASE
+}
+
+enum PropertyType {
+  APARTMENT
+  VILLA
+  INDEPENDENT_HOUSE
+  BUILDER_FLOOR
+  PLOT
+  COMMERCIAL_SHOP
+  COMMERCIAL_OFFICE
+  LAND
+  FARMHOUSE
+  PG
+  OTHER
+}
+
+enum PropertyStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  SOLD
+  RENTED
+  INACTIVE
+  REJECTED
+}
+
+enum PropertyFeatureType {
+  INTERIOR
+  EXTERIOR
+  LOCATION
+  LEGAL
+  INVESTMENT
+  LIFESTYLE
+}
+
+enum PropertyAmenityCategory {
+  SECURITY
+  LIFESTYLE
+  CONVENIENCE
+  PARKING
+  CONNECTIVITY
+  SUSTAINABILITY
+}
+
+enum FurnishingStatus {
+  UNFURNISHED
+  SEMI_FURNISHED
+  FULLY_FURNISHED
+}
+
+enum ImageOwnerType {
+  PROPERTY
+  CONSTRUCTION_MATERIAL
+  HOME_DECOR_PRODUCT
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  SITE_VISIT_SCHEDULED
+  NEGOTIATION
+  CONVERTED
+  LOST
+}
+
+enum LeadSource {
+  WEBSITE
+  PHONE
+  WHATSAPP
+  GOOGLE_ADS
+  SOCIAL_MEDIA
+  REFERRAL
+  WALK_IN
+  OTHER
+}
+
+enum CategoryType {
+  PROPERTY
+  CONSTRUCTION_MATERIAL
+  HOME_DECOR
+  BLOG
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  OUT_OF_STOCK
+  INACTIVE
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ReviewTargetType {
+  PROPERTY
+  AGENT
+  CONSTRUCTION_MATERIAL
+  HOME_DECOR_PRODUCT
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model State {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  code      String?  @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cities     City[]
+  properties Property[]
+  agents     Agent[]
+  users      User[]
+  leads      Lead[]
+
+  @@index([name])
+  @@map("states")
+}
+
+model City {
+  id        String   @id @default(cuid())
+  stateId   String
+  name      String
+  slug      String
+  latitude  Decimal? @db.Decimal(10, 7)
+  longitude Decimal? @db.Decimal(10, 7)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  state      State      @relation(fields: [stateId], references: [id], onDelete: Restrict)
+  users      User[]
+  agents     Agent[]
+  properties Property[]
+  leads      Lead[]
+
+  @@unique([stateId, slug])
+  @@index([name])
+  @@index([stateId, isActive])
+  @@map("cities")
+}
+
+model User {
+  id          String     @id @default(cuid())
+  clerkUserId String     @unique
+  email       String     @unique
+  phone       String?    @unique
+  firstName   String?
+  lastName    String?
+  imageUrl    String?
+  role        UserRole   @default(CUSTOMER)
+  status      UserStatus @default(ACTIVE)
+  stateId     String?
+  cityId      String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  lastLoginAt DateTime?
+
+  state              State?     @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  city               City?      @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  agentProfile       Agent?
+  listedProperties   Property[] @relation("PropertyListedBy")
+  assignedProperties Property[] @relation("PropertyAssignedTo")
+  authoredBlogs      Blog[]
+  leads              Lead[]     @relation("LeadCustomer")
+  assignedLeads      Lead[]     @relation("LeadAssignedTo")
+  reviews            Review[]
+
+  @@index([role, status])
+  @@index([stateId, cityId])
+  @@map("users")
+}
+
+model Agent {
+  id              String      @id @default(cuid())
+  userId          String      @unique
+  stateId         String?
+  cityId          String?
+  displayName     String
+  slug            String      @unique
+  bio             String?
+  reraNumber      String?
+  licenseNumber   String?
+  officeAddress   String?
+  yearsExperience Int?
+  status          AgentStatus @default(PENDING)
+  isVerified      Boolean     @default(false)
+  averageRating   Decimal     @default(0) @db.Decimal(3, 2)
+  totalReviews    Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  state      State?     @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  city       City?      @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  properties Property[]
+  leads      Lead[]
+  reviews    Review[]
+
+  @@index([status, isVerified])
+  @@index([stateId, cityId])
+  @@map("agents")
+}
+
+model Property {
+  id                String            @id @default(cuid())
+  listedById        String
+  assignedToId      String?
+  agentId           String?
+  stateId           String
+  cityId            String
+  title             String
+  slug              String            @unique
+  description       String
+  purpose           PropertyPurpose
+  type              PropertyType
+  status            PropertyStatus    @default(DRAFT)
+  furnishing        FurnishingStatus?
+  price             Decimal           @db.Decimal(14, 2)
+  maintenanceCharge Decimal?          @db.Decimal(12, 2)
+  securityDeposit   Decimal?          @db.Decimal(12, 2)
+  bedrooms          Int?
+  bathrooms         Int?
+  balconies         Int?
+  carpetAreaSqFt    Decimal?          @db.Decimal(10, 2)
+  builtUpAreaSqFt   Decimal?          @db.Decimal(10, 2)
+  plotAreaSqFt      Decimal?          @db.Decimal(10, 2)
+  floorNumber       Int?
+  totalFloors       Int?
+  addressLine1      String
+  addressLine2      String?
+  locality          String?
+  pincode           String?
+  latitude          Decimal?          @db.Decimal(10, 7)
+  longitude         Decimal?          @db.Decimal(10, 7)
+  googlePlaceId     String?
+  isFeatured        Boolean           @default(false)
+  isVerified        Boolean           @default(false)
+  seoTitle          String?
+  seoDescription    String?
+  publishedAt       DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  listedBy   User   @relation("PropertyListedBy", fields: [listedById], references: [id], onDelete: Restrict)
+  assignedTo User?  @relation("PropertyAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  agent      Agent? @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  state      State  @relation(fields: [stateId], references: [id], onDelete: Restrict)
+  city       City   @relation(fields: [cityId], references: [id], onDelete: Restrict)
+
+  images     PropertyImage[]
+  location   PropertyLocation?
+  features   PropertyFeature[]
+  amenities  PropertyAmenity[]
+  leads      Lead[]
+  categories PropertyCategory[]
+  reviews    Review[]
+
+  @@index([status, purpose, type])
+  @@index([stateId, cityId, status])
+  @@index([price])
+  @@index([isFeatured, isVerified, publishedAt])
+  @@index([locality])
+  @@map("properties")
+}
+
+model PropertyLocation {
+  id              String   @id @default(cuid())
+  propertyId      String   @unique
+  locality        String
+  addressLine1    String
+  addressLine2    String?
+  landmark        String?
+  pincode         String?
+  latitude        Decimal  @db.Decimal(10, 7)
+  longitude       Decimal  @db.Decimal(10, 7)
+  nearbySchools   String[]
+  nearbyHospitals String[]
+  nearbyMarkets   String[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([locality])
+  @@index([latitude, longitude])
+  @@map("property_locations")
+}
+
+model PropertyFeature {
+  id         String              @id @default(cuid())
+  propertyId String
+  type       PropertyFeatureType
+  title      String
+  value      String?
+  icon       String?
+  sortOrder  Int                 @default(0)
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, sortOrder])
+  @@index([type])
+  @@map("property_features")
+}
+
+model PropertyAmenity {
+  id         String                  @id @default(cuid())
+  propertyId String
+  name       String
+  slug       String
+  category   PropertyAmenityCategory
+  icon       String?
+  sortOrder  Int                     @default(0)
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, slug])
+  @@index([propertyId, sortOrder])
+  @@index([category])
+  @@map("property_amenities")
+}
+
+model PropertyImage {
+  id                String         @id @default(cuid())
+  propertyId        String
+  ownerType         ImageOwnerType @default(PROPERTY)
+  cloudinaryAssetId String         @unique
+  publicId          String         @unique
+  secureUrl         String
+  altText           String?
+  sortOrder         Int            @default(0)
+  isPrimary         Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, sortOrder])
+  @@index([propertyId, isPrimary])
+  @@map("property_images")
+}
+
+model Lead {
+  id            String     @id @default(cuid())
+  customerId    String?
+  propertyId    String?
+  agentId       String?
+  assignedToId  String?
+  stateId       String?
+  cityId        String?
+  name          String
+  email         String?
+  phone         String
+  message       String?
+  budgetMin     Decimal?   @db.Decimal(14, 2)
+  budgetMax     Decimal?   @db.Decimal(14, 2)
+  preferredDate DateTime?
+  status        LeadStatus @default(NEW)
+  source        LeadSource @default(WEBSITE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  customer   User?     @relation("LeadCustomer", fields: [customerId], references: [id], onDelete: SetNull)
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  agent      Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  assignedTo User?     @relation("LeadAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  state      State?    @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  city       City?     @relation(fields: [cityId], references: [id], onDelete: SetNull)
+
+  @@index([status, source])
+  @@index([propertyId])
+  @@index([agentId])
+  @@index([stateId, cityId])
+  @@index([createdAt])
+  @@map("leads")
+}
+
+model ConstructionMaterial {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String        @unique
+  description String?
+  brand       String?
+  unit        String?
+  price       Decimal?      @db.Decimal(12, 2)
+  status      ProductStatus @default(DRAFT)
+  isFeatured  Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  categories MaterialCategory[]
+  images     ProductImage[]
+  reviews    Review[]
+
+  @@index([status, isFeatured])
+  @@index([name])
+  @@map("construction_materials")
+}
+
+model HomeDecorProduct {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String        @unique
+  description String?
+  brand       String?
+  sku         String?       @unique
+  price       Decimal?      @db.Decimal(12, 2)
+  status      ProductStatus @default(DRAFT)
+  isFeatured  Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  categories DecorProductCategory[]
+  images     ProductImage[]
+  reviews    Review[]
+
+  @@index([status, isFeatured])
+  @@index([name])
+  @@map("home_decor_products")
+}
+
+model ProductImage {
+  id                     String         @id @default(cuid())
+  constructionMaterialId String?
+  homeDecorProductId     String?
+  ownerType              ImageOwnerType
+  cloudinaryAssetId      String         @unique
+  publicId               String         @unique
+  secureUrl              String
+  altText                String?
+  sortOrder              Int            @default(0)
+  isPrimary              Boolean        @default(false)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  constructionMaterial ConstructionMaterial? @relation(fields: [constructionMaterialId], references: [id], onDelete: Cascade)
+  homeDecorProduct     HomeDecorProduct?     @relation(fields: [homeDecorProductId], references: [id], onDelete: Cascade)
+
+  @@index([constructionMaterialId, sortOrder])
+  @@index([homeDecorProductId, sortOrder])
+  @@map("product_images")
+}
+
+model Blog {
+  id              String     @id @default(cuid())
+  authorId        String
+  title           String
+  slug            String     @unique
+  excerpt         String?
+  content         String
+  coverImageUrl   String?
+  metaTitle       String?
+  metaDescription String?
+  status          BlogStatus @default(DRAFT)
+  publishedAt     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  author     User           @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  categories BlogCategory[]
+
+  @@index([status, publishedAt])
+  @@index([authorId])
+  @@map("blogs")
+}
+
+model Category {
+  id              String       @id @default(cuid())
+  parentId        String?
+  name            String
+  slug            String
+  type            CategoryType
+  description     String?
+  metaTitle       String?
+  metaDescription String?
+  isActive        Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  parent                Category?              @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children              Category[]             @relation("CategoryHierarchy")
+  properties            PropertyCategory[]
+  constructionMaterials MaterialCategory[]
+  homeDecorProducts     DecorProductCategory[]
+  blogs                 BlogCategory[]
+
+  @@unique([type, slug])
+  @@index([parentId])
+  @@index([type, isActive])
+  @@map("categories")
+}
+
+model PropertyCategory {
+  propertyId String
+  categoryId String
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([propertyId, categoryId])
+  @@index([categoryId])
+  @@map("property_categories")
+}
+
+model MaterialCategory {
+  materialId String
+  categoryId String
+  createdAt  DateTime @default(now())
+
+  material ConstructionMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  category Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([materialId, categoryId])
+  @@index([categoryId])
+  @@map("material_categories")
+}
+
+model DecorProductCategory {
+  productId  String
+  categoryId String
+  createdAt  DateTime @default(now())
+
+  product  HomeDecorProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+  @@index([categoryId])
+  @@map("decor_product_categories")
+}
+
+model BlogCategory {
+  blogId     String
+  categoryId String
+  createdAt  DateTime @default(now())
+
+  blog     Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([blogId, categoryId])
+  @@index([categoryId])
+  @@map("blog_categories")
+}
+
+model Review {
+  id                     String           @id @default(cuid())
+  userId                 String
+  propertyId             String?
+  agentId                String?
+  constructionMaterialId String?
+  homeDecorProductId     String?
+  targetType             ReviewTargetType
+  rating                 Int
+  title                  String?
+  comment                String?
+  status                 ReviewStatus     @default(PENDING)
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property             Property?             @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  agent                Agent?                @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  constructionMaterial ConstructionMaterial? @relation(fields: [constructionMaterialId], references: [id], onDelete: Cascade)
+  homeDecorProduct     HomeDecorProduct?     @relation(fields: [homeDecorProductId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([propertyId])
+  @@index([agentId])
+  @@index([constructionMaterialId])
+  @@index([homeDecorProductId])
+  @@index([targetType, status])
+  @@map("reviews")
+}
