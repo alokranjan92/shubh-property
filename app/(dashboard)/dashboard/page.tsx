@@ -1,20 +1,49 @@
-import { SafeUserButton } from "@/components/auth/safe-user-button";
+import { redirect } from "next/navigation";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { DashboardStatCard } from "@/components/dashboard/dashboard-stat-card";
+import { hasValidClerkKeys } from "@/lib/auth/clerk";
+import { getCurrentUserRole, getDashboardPathForRole } from "@/lib/auth/roles";
+import { Building2, ShieldCheck, Store, UserRound } from "lucide-react";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const role = await getCurrentUserRole();
+
+  if (hasValidClerkKeys()) {
+    redirect(getDashboardPathForRole(role));
+  }
+
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <h1 className="text-lg font-semibold">Shubh Property Dashboard</h1>
-          <SafeUserButton />
-        </div>
-      </header>
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <h2 className="text-2xl font-semibold">Welcome</h2>
-        <p className="mt-3 text-muted-foreground">
-          Manage properties, leads, agents, locations, media, products, blogs, and reviews.
-        </p>
-      </section>
-    </main>
+    <DashboardShell
+      role={role}
+      title="Authentication Setup Dashboard"
+      description="Clerk keys are not configured, so Shubh Property is running in safe mock mode. Public routes remain accessible and private dashboard UI can still be reviewed."
+    >
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <DashboardStatCard
+          title="Admin"
+          value="Ready"
+          description="Platform operations, SEO, leads and settings."
+          icon={ShieldCheck}
+        />
+        <DashboardStatCard
+          title="Agent"
+          value="Ready"
+          description="Assigned properties, leads and visits."
+          icon={Building2}
+        />
+        <DashboardStatCard
+          title="Customer"
+          value="Ready"
+          description="Saved properties, enquiries and visits."
+          icon={UserRound}
+        />
+        <DashboardStatCard
+          title="Supplier"
+          value="Ready"
+          description="Construction material and decor seller foundation."
+          icon={Store}
+        />
+      </div>
+    </DashboardShell>
   );
 }

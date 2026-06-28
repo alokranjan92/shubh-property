@@ -2,7 +2,7 @@
 CREATE SCHEMA IF NOT EXISTS "public";
 
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('CUSTOMER', 'AGENT', 'ADMIN', 'SUPER_ADMIN');
+CREATE TYPE "UserRole" AS ENUM ('CUSTOMER', 'AGENT', 'SUPPLIER', 'ADMIN', 'SUPER_ADMIN');
 
 -- CreateEnum
 CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'BLOCKED');
@@ -709,4 +709,3 @@ ALTER TABLE "reviews" ADD CONSTRAINT "reviews_constructionMaterialId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "reviews" ADD CONSTRAINT "reviews_homeDecorProductId_fkey" FOREIGN KEY ("homeDecorProductId") REFERENCES "home_decor_products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-

@@ -1,9 +1,10 @@
-import { SignIn } from "@clerk/nextjs";
+import type { Metadata } from "next";
+import { SafeSignInPage } from "@/components/auth/auth-pages";
 
-export default function SignInPage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
-      <SignIn />
-    </main>
-  );
-}
+export const metadata: Metadata = {
+  title: "Sign In",
+  description: "Sign in to your Shubh Property account.",
+  robots: { index: false, follow: false }
+};
+
+export default SafeSignInPage;

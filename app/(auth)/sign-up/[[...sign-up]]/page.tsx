@@ -1,9 +1,10 @@
-import { SignUp } from "@clerk/nextjs";
+import type { Metadata } from "next";
+import { SafeSignUpPage } from "@/components/auth/auth-pages";
 
-export default function SignUpPage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
-      <SignUp />
-    </main>
-  );
-}
+export const metadata: Metadata = {
+  title: "Sign Up",
+  description: "Create a Shubh Property account.",
+  robots: { index: false, follow: false }
+};
+
+export default SafeSignUpPage;
