@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Home, MessageCircle, Search, Tag, WalletCards } from "lucide-react";
 
 const mobileNavItems = [
@@ -10,6 +13,17 @@ const mobileNavItems = [
 ];
 
 export function MobileBottomNav() {
+  const pathname = usePathname();
+  const isPrivateArea =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/sign-in") ||
+    pathname.startsWith("/sign-up") ||
+    pathname.startsWith("/user-profile");
+
+  if (isPrivateArea) {
+    return null;
+  }
+
   return (
     <nav
       aria-label="Mobile quick navigation"

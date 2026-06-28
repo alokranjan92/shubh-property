@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 
 const whatsappMessage = encodeURIComponent(
@@ -5,6 +8,17 @@ const whatsappMessage = encodeURIComponent(
 );
 
 export function FloatingWhatsApp() {
+  const pathname = usePathname();
+  const isPrivateArea =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/sign-in") ||
+    pathname.startsWith("/sign-up") ||
+    pathname.startsWith("/user-profile");
+
+  if (isPrivateArea) {
+    return null;
+  }
+
   return (
     <a
       href={`https://wa.me/919900000001?text=${whatsappMessage}`}

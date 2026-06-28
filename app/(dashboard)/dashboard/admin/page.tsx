@@ -1,14 +1,5 @@
-import { redirect } from "next/navigation";
-import { RoleDashboard } from "@/components/dashboard/role-dashboard";
-import { hasValidClerkKeys } from "@/lib/auth/clerk";
-import { getCurrentUserRole, getDashboardPathForRole } from "@/lib/auth/roles";
+import { AdminOverview } from "@/components/dashboard/admin/admin-overview";
 
 export default async function AdminDashboardPage() {
-  const role = await getCurrentUserRole();
-
-  if (hasValidClerkKeys() && role !== "admin") {
-    redirect(getDashboardPathForRole(role));
-  }
-
-  return <RoleDashboard role={role} view="admin" />;
+  return <AdminOverview />;
 }
