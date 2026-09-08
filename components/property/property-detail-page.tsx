@@ -1,26 +1,22 @@
 import Image from "next/image";
-import Link from "next/link";
 import {
   Bath,
   BedDouble,
-  CalendarCheck,
   CheckCircle2,
   GraduationCap,
   Hospital,
   MapPin,
   Maximize2,
-  PhoneCall,
   School,
-  Share2,
   ShieldCheck,
   ShoppingBag
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PremiumNavbar } from "@/components/home/premium-navbar";
 import { ProfessionalFooter } from "@/components/home/professional-footer";
 import { PropertyCard } from "@/components/property/property-card";
+import { PropertyInquiryCard } from "@/components/property/property-inquiry-card";
 import type { MockProperty } from "@/lib/properties/mock-properties";
 
 type PropertyDetailPageProps = {
@@ -78,10 +74,6 @@ function NearbyList({
 }
 
 export function PropertyDetailPage({ property, similarProperties }: PropertyDetailPageProps) {
-  const whatsappMessage = encodeURIComponent(
-    `Hello Shubh Property, I am interested in ${property.title} (${property.priceLabel}). Please share details.`
-  );
-
   return (
     <>
       <PremiumNavbar />
@@ -229,71 +221,15 @@ export function PropertyDetailPage({ property, similarProperties }: PropertyDeta
             </div>
 
             <aside className="lg:sticky lg:top-24 lg:self-start">
-              <Card className="shadow-xl">
-                <CardContent className="p-6">
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-                    Inquiry
-                  </p>
-                  <h2 className="mt-3 text-2xl font-semibold">Interested in this property?</h2>
-                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                    Contact Shubh Property for details, documents, site visit coordination and
-                    local guidance.
-                  </p>
-                  <div className="mt-6 grid gap-3">
-                    <Button asChild size="lg">
-                      <a
-                        href={`https://wa.me/919900000001?text=${whatsappMessage}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <Share2 className="h-4 w-4" aria-hidden="true" />
-                        WhatsApp Inquiry
-                      </a>
-                    </Button>
-                    <Button asChild size="lg" variant="outline">
-                      <a href="tel:+919900000001">
-                        <PhoneCall className="h-4 w-4" aria-hidden="true" />
-                        Call Now
-                      </a>
-                    </Button>
-                    <Button asChild size="lg" variant="secondary">
-                      <Link href="/contact">
-                        <CalendarCheck className="h-4 w-4" aria-hidden="true" />
-                        Schedule Visit
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <PropertyInquiryCard
+                propertySlug={property.slug}
+                propertyTitle={property.title}
+                priceLabel={property.priceLabel}
+              />
             </aside>
           </div>
         </section>
 
-        <div className="fixed inset-x-0 bottom-16 z-40 border-t border-border bg-background/95 p-3 shadow-[0_-12px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl md:hidden">
-          <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
-            <Button asChild variant="outline">
-              <a href="tel:+919900000001">
-                <PhoneCall className="h-4 w-4" aria-hidden="true" />
-                Call
-              </a>
-            </Button>
-            <Button asChild variant="secondary">
-              <Link href="/contact">
-                <CalendarCheck className="h-4 w-4" aria-hidden="true" />
-                Visit
-              </Link>
-            </Button>
-            <Button asChild>
-              <a
-                href={`https://wa.me/919900000001?text=${whatsappMessage}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                WhatsApp
-              </a>
-            </Button>
-          </div>
-        </div>
       </main>
       <ProfessionalFooter />
     </>
